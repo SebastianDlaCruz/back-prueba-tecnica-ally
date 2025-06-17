@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser';
 import express from "express";
-import { serverConfig } from './server.config';
+import { serverConfig } from './server';
 
 
 const app = express();
@@ -11,8 +11,10 @@ const app = express();
 
     const { connectionMethod, corsMethod, port, providerRouter, textRunServer } = config;
 
-    app.use(cookieParser())
+
     app.use(express.json());
+    app.use(cookieParser());
+    app.use(corsMethod())
 
 
     const connection = await connectionMethod();
@@ -20,6 +22,11 @@ const app = express();
     providerRouter.forEach((data) => {
       app.use(data.path, data.generateRouter(new data.controller(new data.model({ method: connection }))))
     })
+
+    app.listen(port, () => {
+      console.log(`${textRunServer}:${port}`)
+    });
+
 
   } catch (error) {
     console.error('Server failed to start:', error);

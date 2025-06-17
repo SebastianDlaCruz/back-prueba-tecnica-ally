@@ -1,6 +1,6 @@
 
-import { InternalServerError } from '@lib/index';
 import mysql, { createPool } from 'mysql2/promise';
+import { InternalServerError } from '../../lib/errors/internal-server/internal-server.error';
 const {
   HOST,
   USER,
