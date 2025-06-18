@@ -24,6 +24,6 @@ export const createAuthSchema = z.object({
   username: z.string({
     invalid_type_error: 'El nombre debe ser texto',
     required_error: 'Nombre es obligatorio'
-  }).trim().min(12, 'El email no puede estar vacío')
+  }).trim()
 
 })

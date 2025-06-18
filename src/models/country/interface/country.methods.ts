@@ -1,14 +1,11 @@
 import { StateResponse } from "../../../lib/interfaces/state.response.interface";
 
 export interface Country {
-  country_id: number;
-  country_name: string;
+  id: number;
+  name: string;
 }
 
-export interface City {
-  city_id: number;
-  city_name: string;
-}
+export interface City extends Country { };
 
 
 export interface ResponseCountry extends StateResponse {

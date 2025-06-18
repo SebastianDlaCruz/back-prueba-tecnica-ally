@@ -1,17 +1,16 @@
 
 
-import { Response } from "express";
 import { RowDataPacket } from "mysql2";
+import { Errors } from "../../lib/enums/error.enum";
 import { AuthenticationError } from "../../lib/errors/authentication/authentication.error";
 import { ConflictError } from "../../lib/errors/conflict/conflict.error";
 import { InternalServerError } from "../../lib/errors/internal-server/internal-server.error";
 import { NotFoundError } from "../../lib/errors/not-found/not-found.error";
 import { StateResponse } from "../../lib/interfaces/state.response.interface";
-import { CookieService } from "../../services/cookie/cookie.service";
 import { HastService } from "../../services/hast.service/hast.service";
 import { JwtService } from "../../services/jwt/jwt.service";
 import { Connection, ConnectionDBModel } from "../connection-db/connection-db.model";
-import { AuthMethods, ResponseAuth } from "./interface/auth-methods.interface";
+import { AuthMethods, PaginatedResponse, ResponseAuth } from "./interface/auth-methods.interface";
 
 export interface InputsSingIn {
   email: string;
@@ -46,13 +45,13 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
 
 
       if (!user[0]) {
-        throw new NotFoundError('Usuario no encontrado');
+        throw new NotFoundError('Usuario no encontrado', Errors.USER_NOT_FOUND);
       }
 
       const confirm = await HastService.compare(inputs.password, user[0].password);
 
       if (!confirm) {
-        throw new InternalServerError('Las contraseñas no coinciden');
+        throw new InternalServerError('Las contraseñas no coinciden', Errors.INCORRECT_PASSWORDS);
       }
 
       const [update] = await this.connection.method.query(
@@ -91,7 +90,7 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
         throw error;
       }
 
-      throw new InternalServerError('Error al iniciar session')
+      throw new InternalServerError('Error al iniciar session', Errors.ERROR_SING_IN)
 
     } finally {
       this.release();
@@ -106,7 +105,7 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
       const [exist] = await this.connection.method.query<authQuery[]>('SELECT * FROM Auth WHERE email = ?', [inputs.email]);
 
       if (exist[0]) {
-        throw new ConflictError('El usuario ya se encuentra registrado');
+        throw new ConflictError('El usuario ya se encuentra registrado', Errors.USER_EXISTE);
       }
 
 
@@ -116,7 +115,7 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
       const result = await this.connection.method.query('INSERT INTO Auth (username,email,password,register_date) VALUES (?,?,?, CURRENT_TIMESTAMP)', [username, email, hasPassword]);
 
       if (!result) {
-        throw new InternalServerError('Error al registrar el usuario')
+        throw new InternalServerError('Error al registrar el usuario', Errors.ERROR_SING_UP)
       }
 
       return {
@@ -132,7 +131,7 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
         throw error;
       }
 
-      throw new InternalServerError('Error al iniciar session')
+      throw new InternalServerError('Error al crear el usuario', Errors.ERROR_SING_UP);
 
     } finally {
       this.release();
@@ -141,18 +140,6 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
 
 
 
-
-  singOut(res: Response): StateResponse {
-
-    CookieService.clearCookie(res);
-
-    return {
-      statusCode: 200,
-      message: 'Existo al cerrar sesión',
-      success: true
-    }
-
-  }
 
   refreshToken(token: string): ResponseAuth {
 
@@ -164,11 +151,11 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
       }
 
 
-      if (token.length < 0) throw new AuthenticationError('Necesita autorización');
+      if (token.length < 0) throw new AuthenticationError('Necesita autorización', Errors.AUTHORIZATION_REQUIRED);
 
       JwtService.verify(token, (err, payload) => {
 
-        if (err) throw new AuthenticationError('Autorización fallida');
+        if (err) throw new AuthenticationError('Autorización fallida', Errors.FAIL_AUTHORIZATION);
 
         if (!payload) throw new InternalServerError('Error en el payload');
 
@@ -213,7 +200,7 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
         throw error;
       }
 
-      throw new InternalServerError('Error al generar los tokens')
+      throw new InternalServerError('Error al generar los tokens', Errors.ERROR_GENERATE_TOKENS)
     } finally {
       this.release();
     }
@@ -222,23 +209,8 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
   }
 
 
-  async getUsers(page: number, limit: number) {
+  async getUsers(page: number, limit?: number): Promise<PaginatedResponse> {
     try {
-
-
-      const offset = (page - 1) * limit;
-
-
-      const [users] = await this.connection.method.query<authQuery[]>(
-        `SELECT 
-        BIN_TO_UUID(uuid) AS uuid, 
-        username, 
-        email, 
-        register_date 
-       FROM Auth 
-       LIMIT ? OFFSET ?`,
-        [limit, offset]
-      );
 
       interface total {
         total: number
@@ -246,20 +218,30 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
 
       type itemQuery = total & RowDataPacket;
 
-
       const [totalCount] = await this.connection.method.query<itemQuery[]>(
         'SELECT COUNT(*) AS total FROM Auth'
       );
-
       const totalItems = totalCount[0].total;
-      const totalPages = Math.ceil(totalItems / limit);
 
+
+      const effectiveLimit = limit ?? totalItems;
+
+      const offset = (page - 1) * effectiveLimit;
+
+      const [users] = await this.connection.method.query<authQuery[]>(
+        `SELECT BIN_TO_UUID(uuid) AS uuid, username, email, register_date ,session_start_date
+       FROM Auth 
+       LIMIT ? OFFSET ?`,
+        [effectiveLimit, offset]
+      );
+
+      const totalPages = Math.ceil(totalItems / effectiveLimit);
       if (page > totalPages && totalPages > 0) {
         throw new NotFoundError('La página solicitada no existe');
       }
 
 
-      const basePath = '/api/v1/users?';
+      const basePath = '/users?';
       const paginationLinks = {
         first: `${basePath}page=1&limit=${limit}`,
         last: `${basePath}page=${totalPages}&limit=${limit}`,
@@ -274,7 +256,7 @@ export class AuthModel extends ConnectionDBModel implements AuthMethods {
         data: users,
         pagination: {
           currentPage: page,
-          itemsPerPage: limit,
+          itemsPerPage: effectiveLimit,
           totalItems,
           totalPages,
           ...paginationLinks

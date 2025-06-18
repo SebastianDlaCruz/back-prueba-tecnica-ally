@@ -38,7 +38,8 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
       }
 
@@ -46,7 +47,8 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
       }
 
@@ -78,7 +80,8 @@ export class AuthController {
           {
             statusCode: error.statusCode,
             message: error.message,
-            success: false
+            success: false,
+            code_error: error.code_error
           }
         )
       }
@@ -87,17 +90,14 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
       }
 
     }
   }
 
-  singOut(res: Response) {
-    const response = this.auth.singOut(res);
-    res.status(response.statusCode).json(response);
-  }
 
 
   refreshToken(req: Request, res: Response) {
@@ -117,7 +117,8 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
       }
 
@@ -125,7 +126,8 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
       }
     }
@@ -141,7 +143,7 @@ export class AuthController {
 
       const response = await this.auth.getUsers(page, limit);
 
-      res.status(response.statusCode).json({ response });
+      res.status(response.statusCode).json(response);
 
     } catch (error) {
 
@@ -149,7 +151,8 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
 
       }
@@ -158,7 +161,8 @@ export class AuthController {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,
-          success: false
+          success: false,
+          code_error: error.code_error
         })
 
       }

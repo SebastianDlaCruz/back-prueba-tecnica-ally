@@ -9,7 +9,7 @@ export class JwtService {
 
   static generateToken(payload: Payload) {
     return jwt.sign(payload, process.env.KEY_JWT as string, {
-      expiresIn: '15m'
+      expiresIn: '1m'
     });
 
   }
