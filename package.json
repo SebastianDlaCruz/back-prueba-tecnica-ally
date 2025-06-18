@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-dev --env-file=.env ./index.ts"
+    "dev": "ts-node-dev --env-file=.env ./index.ts",
+    "build": "tsc",
+    "start": "ts-node-dev ./index.ts"
   },
   "keywords": [],
   "author": "",
