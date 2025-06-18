@@ -1,6 +1,5 @@
 
 import mysql, { createPool } from 'mysql2/promise';
-import { InternalServerError } from '../../lib/errors/internal-server/internal-server.error';
 const {
   HOST,
   USER,
@@ -29,7 +28,7 @@ export const getConnectionDB = async (): Promise<mysql.PoolConnection> => {
 
   } catch (error) {
     console.log(error);
-    throw new InternalServerError('Error al conectar a la base de datos');
+    throw error;
   }
 
 }

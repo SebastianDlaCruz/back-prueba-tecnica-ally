@@ -18,7 +18,6 @@ export const authRouter = (authController: AuthController) => {
   })
 
 
-
   router.post('/refresh-token', (req, res) => {
     authController.refreshToken(req, res)
   })
