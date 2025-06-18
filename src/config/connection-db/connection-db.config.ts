@@ -28,6 +28,7 @@ export const getConnectionDB = async (): Promise<mysql.PoolConnection> => {
     return connection;
 
   } catch (error) {
+    console.log(error);
     throw new InternalServerError('Error al conectar a la base de datos');
   }
 
