@@ -17,9 +17,6 @@ export const authRouter = (authController: AuthController) => {
     authController.singUp(req, res)
   })
 
-  router.post('/sing-out', authenticateToken, (req, res) => {
-    authController.singOut(res)
-  })
 
 
   router.post('/refresh-token', (req, res) => {
