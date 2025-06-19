@@ -1,6 +1,6 @@
 
 import mysql, { createPool } from 'mysql2/promise';
-import process from 'node:process';
+
 
 const {
   MYSQLHOST,
@@ -23,7 +23,7 @@ export const config = {
 export const getConnectionDB = async (): Promise<mysql.PoolConnection> => {
 
   try {
-    console.log(config, process.env)
+    console.log(config)
     const pool = createPool(config)
     const connection = await pool.getConnection();
 
