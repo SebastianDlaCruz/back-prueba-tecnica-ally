@@ -21,6 +21,7 @@ export const config = {
 export const getConnectionDB = async (): Promise<mysql.PoolConnection> => {
 
   try {
+    console.log(config)
     const pool = createPool(config)
     const connection = await pool.getConnection();
 
