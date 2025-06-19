@@ -1,19 +1,19 @@
 
 import mysql, { createPool } from 'mysql2/promise';
 const {
-  HOST,
-  USER,
-  PORTDB,
-  PASSWORD,
-  DATABASE } = process.env;
+  MYSQLHOST,
+  MYSQLUSER,
+  MYSQLPORT,
+  MYSQLPASSWORD,
+  MYSQLDATABASE } = process.env;
 
 
 export const config = {
-  host: HOST,
-  user: USER,
-  port: parseInt(PORTDB || '3306'),
-  password: PASSWORD,
-  database: DATABASE,
+  host: MYSQLHOST,
+  user: MYSQLUSER,
+  port: parseInt(MYSQLPORT || '3306'),
+  password: MYSQLPASSWORD,
+  database: MYSQLDATABASE,
   connectionLimit: 10,
   queueLimit: 0,
 } as const;
