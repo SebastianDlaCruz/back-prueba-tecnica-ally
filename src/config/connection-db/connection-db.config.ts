@@ -1,6 +1,7 @@
 
+import dotenv from 'dotenv';
 import mysql, { createPool } from 'mysql2/promise';
-
+dotenv.config();
 
 const {
   MYSQLHOST,
